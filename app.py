@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
 # GitHub CSV raw URL (replace with your actual one)
-CSV_URL = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/blob/main/hvac_preprocessed.csv"
+CSV_URL = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hvac_preprocessed.csv"
 
 # Load data
 @st.cache_data
