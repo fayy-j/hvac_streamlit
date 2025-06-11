@@ -66,7 +66,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Title
-st.markdown("<h1>Energy Consumption Predictor</h1>", unsafe_allow_html=True)
+st.markdown("<h1>HVAC Energy Consumption Predictor</h1>", unsafe_allow_html=True)
 st.markdown("Use this tool to estimate energy usage based on HVAC parameters.")
 
 # Input form
