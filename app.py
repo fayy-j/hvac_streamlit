@@ -66,7 +66,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Title
-st.markdown("<h1>🔋 Energy Consumption Predictor</h1>", unsafe_allow_html=True)
+st.markdown("<h1>HVAC Energy Consumption Predictor</h1>", unsafe_allow_html=True)
 st.markdown("Use this tool to estimate energy usage based on HVAC parameters.")
 
 # Input form
@@ -98,7 +98,8 @@ with st.expander("ℹ️ About This App"):
         - **T_Return**: Return air temperature
         - **T_Outdoor**: Outdoor air temperature
         - **T_Saturation**: Saturation level (%)
+        - **Still in development**
     """)
 
 # Footer
-st.markdown('<div class="footer">Developed by Fatirahmah | © 2025</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Developed by fayy-j | © 2025</div>', unsafe_allow_html=True)
