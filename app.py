@@ -13,7 +13,7 @@ SCALER_PATH = "scaler.pkl"
 # Load data
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/main/hvac_preprocessed.csv"  # change this
+    url = "https://github.com/fayy-j/hvac_streamlit/blob/main/hvac_preprocessed.csv"  # change this
     df = pd.read_csv(url)
     df = df.drop(columns=["Timestamp"], errors="ignore")
     return df
