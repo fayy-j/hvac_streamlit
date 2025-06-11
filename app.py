@@ -4,76 +4,91 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
-CSV_URL = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hvac_preprocessed.csv"
+# Page config
+st.set_page_config(page_title="Energy Consumption Dashboard", layout="centered")
 
+# Load data and train model
 @st.cache_data
 def load_and_train_model():
+    CSV_URL = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hvac_preprocessed.csv"
     df = pd.read_csv(CSV_URL)
+
+    # Drop Timestamp column if exists
     df = df.drop(columns=["Timestamp"], errors="ignore")
-    X = df[['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']]
-    y = df["Energy"]
+
+    # Features and target
+    feature_cols = ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']
+    target_col = "Energy"
+
+    X = df[feature_cols]
+    y = df[target_col]
+
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
+
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_scaled, y)
+
     return model, scaler
 
+# Load model
 model, scaler = load_and_train_model()
 
-# --- Stylish and Professional CSS Theme ---
+# Custom CSS styling
 st.markdown("""
     <style>
-    body {
-        font-family: 'Segoe UI', 'Roboto', sans-serif;
-    }
-    .main {
-        background: rgba(173, 216, 230, 0.15); /* Soft blue, transparent */
-        border-radius: 12px;
-        padding: 2rem;
-    }
-    html, body, [class*="css"] {
-        background-color: rgba(173, 216, 230, 0.2); /* lighter transparent soft blue */
-    }
-    .stTextInput > div > div > input {
-        background-color: #f0faff;
-        border: 1px solid #b0cbe8;
-        border-radius: 8px;
-        padding: 0.5rem;
-    }
-    .stButton button {
-        background-color: #4da6ff;
-        color: white;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        border: none;
-    }
-    .stButton button:hover {
-        background-color: #3399ff;
-    }
+        .main {
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #1f3b4d;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0.5em;
+        }
+        .stButton>button {
+            background-color: #1f77b4;
+            color: white;
+            font-size: 16px;
+            padding: 0.5em 1em;
+            border-radius: 8px;
+        }
+        .stButton>button:hover {
+            background-color: #16658a;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: grey;
+            margin-top: 3rem;
+        }
     </style>
 """, unsafe_allow_html=True)
 
-# --- App Title & Instructions ---
-st.title("HVAC Energy Consumption Predictor")
-st.subheader("Predict your system's energy usage with real-world input values.")
+# Title
+st.markdown("<h1>Energy Consumption Predictor</h1>", unsafe_allow_html=True)
+st.markdown("Use this tool to estimate energy usage based on HVAC parameters.")
 
-st.markdown("Enter the following real (for now standardized) values:")
+# Input form
+with st.form("prediction_form"):
+    st.subheader("🧾 Enter Input Values")
+    col1, col2 = st.columns(2)
 
-# --- Input Section ---
-input_str = st.text_input("T_Supply, T_Return, T_Outdoor, T_Saturation", "20.0, 19.0, 55.0, 60.0")
+    with col1:
+        t_supply = st.number_input("T_Supply (°C)", value=20.0, step=0.1)
+        t_outdoor = st.number_input("T_Outdoor (°C)", value=55.0, step=0.1)
+    with col2:
+        t_return = st.number_input("T_Return (°C)", value=19.0, step=0.1)
+        t_saturation = st.number_input("T_Saturation (%)", value=60.0, step=0.1)
 
-# --- Prediction Output ---
-if input_str:
-    try:
-        values = np.array([float(x.strip()) for x in input_str.split(",")])
-        if len(values) != 4:
-            st.error("❌ Please enter exactly 4 comma-separated values.")
-        else:
-            values_scaled = scaler.transform(values.reshape(1, -1))
-            prediction = model.predict(values_scaled)[0]
-            st.success(f"🔍 Predicted Energy Consumption: **{prediction:.2f} kWh**")
-    except Exception as e:
-        st.error(f"⚠️ Invalid input: {e}")
+    submit = st.form_submit_button("Predict")
+
+# Predict and display
+if submit:
+    input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
+    input_scaled = scaler.transform(input_array)
+    prediction = model.predict(input_scaled)[0]
+    st.success(f"✅ **Predicted Energy Consumption:** {prediction:.2f} kWh")
 
 # Expandable info
 with st.expander("ℹ️ About This App"):
@@ -83,7 +98,7 @@ with st.expander("ℹ️ About This App"):
         - **T_Return**: Return air temperature
         - **T_Outdoor**: Outdoor air temperature
         - **T_Saturation**: Saturation level (%)
-        - **Still in development**
+        - **IN DEVELOPMENT**
     """)
 
 # Footer
