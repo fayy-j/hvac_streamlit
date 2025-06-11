@@ -1,61 +1,54 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import os
-import joblib
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
-# Set paths for .pkl files
-MODEL_PATH = "model.pkl"
-SCALER_PATH = "scaler.pkl"
+# GitHub CSV raw URL (replace with your actual one)
+CSV_URL = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/blob/main/hvac_preprocessed.csv"
 
 # Load data
 @st.cache_data
-def load_data():
-    url = "https://github.com/fayy-j/hvac_streamlit/blob/main/hvac_preprocessed.csv"  # change this
-    df = pd.read_csv(url)
+def load_and_train_model():
+    df = pd.read_csv(CSV_URL)
+    
+    # Drop Timestamp column if exists
     df = df.drop(columns=["Timestamp"], errors="ignore")
-    return df
 
-df = load_data()
+    # Define features and target
+    feature_cols = ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']  # adjust if needed
+    target_col = "Energy"
+    
+    X = df[feature_cols]
+    y = df[target_col]
 
-# Features
-feature_cols = ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']
-X = df[feature_cols]
-y = df["Energy"]
-
-# Load or train model and scaler
-if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
-    model = joblib.load(MODEL_PATH)
-    scaler = joblib.load(SCALER_PATH)
-else:
+    # Scale features
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
+    # Train model
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_scaled, y)
 
-    joblib.dump(model, MODEL_PATH)
-    joblib.dump(scaler, SCALER_PATH)
+    return model, scaler
 
-# UI
-st.title("Energy Consumption Prediction")
-st.markdown("Enter raw input values to predict energy consumption (no need to standardize).")
+# Load model and scaler
+model, scaler = load_and_train_model()
 
-user_input = st.text_input(
-    "Enter values for: T_Supply, T_Return, T_Outdoor, T_Saturation",
-    placeholder="e.g., 20.5, 19.8, 55.2, 60.1"
-)
+# Streamlit UI
+st.title("🔋 Energy Consumption Predictor")
+st.write("Enter real (unstandardized) values below:")
 
-if user_input:
+input_str = st.text_input("T_Supply, T_Return, T_Outdoor, T_Saturation", "20.0, 19.0, 55.0, 60.0")
+
+if input_str:
     try:
-        input_values = np.array([float(x.strip()) for x in user_input.split(',')])
-        if len(input_values) != 4:
-            st.error("Please enter exactly 4 values.")
+        values = np.array([float(x.strip()) for x in input_str.split(",")])
+        if len(values) != 4:
+            st.error("❌ Please enter exactly 4 comma-separated values.")
         else:
-            input_scaled = scaler.transform(input_values.reshape(1, -1))
-            prediction = model.predict(input_scaled)[0]
-            st.success(f"Predicted Energy Consumption: {prediction:.4f}")
+            values_scaled = scaler.transform(values.reshape(1, -1))
+            prediction = model.predict(values_scaled)[0]
+            st.success(f"✅ Predicted Energy Consumption: {prediction:.2f}")
     except Exception as e:
-        st.error(f"Invalid input. Error: {e}")
+        st.error(f"❌ Invalid input: {e}")
