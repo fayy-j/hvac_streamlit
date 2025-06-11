@@ -1,48 +1,61 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 import joblib
-import requests
-import io
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 
-# === Load scaler.pkl locally ===
-scaler = joblib.load("scaler.pkl")
+# Set paths for .pkl files
+MODEL_PATH = "model.pkl"
+SCALER_PATH = "scaler.pkl"
 
-# === Define model.pkl Google Drive direct link ===
-# Replace with your actual file ID from Drive
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1X0166oZTUgdAsGl-H5q93gxuJOXwbEZH"
+# Load data
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/main/hvac_preprocessed.csv"  # change this
+    df = pd.read_csv(url)
+    df = df.drop(columns=["Timestamp"], errors="ignore")
+    return df
 
-# Function to load model.pkl from Google Drive
-@st.cache_resource
-def load_model_from_drive(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return joblib.load(io.BytesIO(response.content))
-    else:
-        st.error("Failed to load model from Google Drive.")
-        return None
+df = load_data()
 
-model = load_model_from_drive(MODEL_URL)
+# Features
+feature_cols = ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']
+X = df[feature_cols]
+y = df["Energy"]
 
-# === Streamlit App UI ===
+# Load or train model and scaler
+if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
+    model = joblib.load(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+else:
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X_scaled, y)
+
+    joblib.dump(model, MODEL_PATH)
+    joblib.dump(scaler, SCALER_PATH)
+
+# UI
 st.title("Energy Consumption Prediction")
-st.markdown("Enter standardized values to predict energy consumption:")
-
-# Input features
-feature_names = ['T_Supply', 'T_Return', 'T_Outdoor', 'RH_Supply', 'RH_Return', 'RH_Outdoor']
+st.markdown("Enter raw input values to predict energy consumption (no need to standardize).")
 
 user_input = st.text_input(
-    label="Enter standardized values for: T_Supply, T_Return, T_Outdoor, RH_Supply, RH_Return, RH_Outdoor",
-    placeholder="Example: -0.045, 0.25, 1.55, 2.74, 2.78, 1.27"
+    "Enter values for: T_Supply, T_Return, T_Outdoor, T_Saturation",
+    placeholder="e.g., 20.5, 19.8, 55.2, 60.1"
 )
 
 if user_input:
     try:
-        values = np.array([float(x.strip()) for x in user_input.split(',')])
-        if len(values) != 6:
-            st.error("Please enter exactly 6 values.")
+        input_values = np.array([float(x.strip()) for x in user_input.split(',')])
+        if len(input_values) != 4:
+            st.error("Please enter exactly 4 values.")
         else:
-            prediction = model.predict(values.reshape(1, -1))[0]
+            input_scaled = scaler.transform(input_values.reshape(1, -1))
+            prediction = model.predict(input_scaled)[0]
             st.success(f"Predicted Energy Consumption: {prediction:.4f}")
     except Exception as e:
-        st.error(f"Invalid input: {e}")
+        st.error(f"Invalid input. Error: {e}")
