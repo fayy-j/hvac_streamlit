@@ -54,65 +54,62 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # --- Tab 1: Predict Energy ---
 # --- Tab 1: Predict Energy ---
 with tab1:
-    st.subheader("🔧 What-If Simulation: Predict Energy")
+    st.subheader("🔧 What-If Simulation: Predict Energy (Live Update)")
 
-    with st.form("prediction_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            t_supply = st.number_input("T_Supply (°C)", value=15.70, step=0.1)
-            t_outdoor = st.number_input("T_Outdoor (°C)", value=16.30, step=0.1)
-        with col2:
-            t_return = st.number_input("T_Return (°C)", value=21.60, step=0.1)
-            t_saturation = st.number_input("T_Saturation (%)", value=13.70, step=0.1)
+    col1, col2 = st.columns(2)
+    with col1:
+        t_supply = st.slider("T_Supply (°C)", min_value=10.0, max_value=30.0, value=15.7, step=0.1)
+        t_outdoor = st.slider("T_Outdoor (°C)", min_value=10.0, max_value=60.0, value=16.3, step=0.1)
+    with col2:
+        t_return = st.slider("T_Return (°C)", min_value=10.0, max_value=30.0, value=21.6, step=0.1)
+        t_saturation = st.slider("T_Saturation (%)", min_value=0.0, max_value=100.0, value=13.7, step=0.1)
 
-        submit = st.form_submit_button("Predict")
+    # Predict immediately on any slider change
+    input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
+    prediction = model.predict(input_array)[0]
+    st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
 
-    if submit:
-        input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
-        prediction = model.predict(input_array)[0]
-        st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
+    # Dynamic plot for live changes
+    st.markdown("### 📈 Impact of Each Parameter (Live Response)")
 
-        # ✅ Add dynamic chart below
-        st.markdown("### 📈 Dynamic Impact of Each Parameter")
+    param_ranges = {
+        "T_Supply": np.linspace(10, 30, 50),
+        "T_Return": np.linspace(10, 30, 50),
+        "T_Outdoor": np.linspace(10, 60, 50),
+        "T_Saturation": np.linspace(0, 100, 50)
+    }
 
-        param_ranges = {
-            "T_Supply": np.linspace(10, 30, 50),
-            "T_Return": np.linspace(10, 30, 50),
-            "T_Outdoor": np.linspace(10, 60, 50),
-            "T_Saturation": np.linspace(0, 100, 50)
+    fig, ax = plt.subplots()
+
+    for param_name, values in param_ranges.items():
+        base = {
+            "T_Supply": t_supply,
+            "T_Return": t_return,
+            "T_Outdoor": t_outdoor,
+            "T_Saturation": t_saturation
         }
 
-        fig, ax = plt.subplots()
+        inputs = []
+        for v in values:
+            temp = base.copy()
+            temp[param_name] = v
+            inputs.append([
+                temp["T_Supply"],
+                temp["T_Return"],
+                temp["T_Outdoor"],
+                temp["T_Saturation"]
+            ])
 
-        for param_name, values in param_ranges.items():
-            # Keep base values the same for others
-            base = {
-                "T_Supply": t_supply,
-                "T_Return": t_return,
-                "T_Outdoor": t_outdoor,
-                "T_Saturation": t_saturation
-            }
+        inputs = np.array(inputs)
+        preds = model.predict(inputs)
+        ax.plot(values, preds, label=param_name)
 
-            inputs = []
-            for v in values:
-                temp = base.copy()
-                temp[param_name] = v
-                inputs.append([
-                    temp["T_Supply"],
-                    temp["T_Return"],
-                    temp["T_Outdoor"],
-                    temp["T_Saturation"]
-                ])
+    ax.set_xlabel("Parameter Value")
+    ax.set_ylabel("Predicted Energy (kWh)")
+    ax.set_title("Live Sensitivity to Parameters")
+    ax.legend()
+    st.pyplot(fig)
 
-            inputs = np.array(inputs)
-            preds = model.predict(inputs)
-            ax.plot(values, preds, label=param_name)
-
-        ax.set_xlabel("Parameter Value")
-        ax.set_ylabel("Predicted Energy (kWh)")
-        ax.set_title("Effect of Varying Each Parameter on Energy")
-        ax.legend()
-        st.pyplot(fig)
 
 
 with tab2:
