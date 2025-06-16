@@ -142,27 +142,61 @@ with tab5:
     st.line_chart(comparison_df)
 
 with tab6:
-    st.subheader("🧪 Real-Time What-If Simulation (All Parameters)")
+    st.subheader("⚙️ Real-Time Simulation & Dynamic Charts")
 
-    st.markdown("Adjust any parameter and instantly see the predicted energy consumption.")
+    st.markdown("Adjust the sliders below to simulate HVAC energy consumption in real time. See how each feature affects the prediction.")
 
-    # --- Sliders for all inputs ---
+    # --- Input sliders for all features ---
     col1, col2 = st.columns(2)
-
     with col1:
         t_supply = st.slider("T_Supply (°C)", min_value=10.0, max_value=30.0, value=20.0, step=0.1)
         t_return = st.slider("T_Return (°C)", min_value=10.0, max_value=30.0, value=19.0, step=0.1)
-
     with col2:
         t_outdoor = st.slider("T_Outdoor (°C)", min_value=20.0, max_value=80.0, value=55.0, step=0.5)
         t_saturation = st.slider("T_Saturation (%)", min_value=30.0, max_value=100.0, value=60.0, step=1.0)
 
-    # --- Predict ---
-    input_vals = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
-    input_scaled = scaler.transform(input_vals)
-    pred_energy = model.predict(input_scaled)[0]
+    # --- Live prediction based on current slider values ---
+    input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
+    input_scaled = scaler.transform(input_array)
+    pred_now = model.predict(input_scaled)[0]
 
-    # --- Show Prediction ---
-    st.metric(label="⚡ Predicted Energy Consumption", value=f"{pred_energy:.2f} kWh")
+    st.metric(label="⚡ Predicted Energy (kWh)", value=f"{pred_now:.2f}")
 
+    st.markdown("---")
+    st.markdown("### 📊 Dynamic Line Charts: Effect of Each Feature")
 
+    # --- Define value ranges for each feature ---
+    feature_ranges = {
+        'T_Supply': np.arange(10.0, 30.1, 0.5),
+        'T_Return': np.arange(10.0, 30.1, 0.5),
+        'T_Outdoor': np.arange(20.0, 80.1, 1.0),
+        'T_Saturation': np.arange(30.0, 100.1, 2.0),
+    }
+
+    # --- Current values from sliders ---
+    current_values = {
+        'T_Supply': t_supply,
+        'T_Return': t_return,
+        'T_Outdoor': t_outdoor,
+        'T_Saturation': t_saturation,
+    }
+
+    # --- Generate and display dynamic line charts for each input ---
+    for feature in feature_ranges:
+        sim_data = []
+
+        for val in feature_ranges[feature]:
+            # Clone current values and vary only the selected feature
+            test_input = current_values.copy()
+            test_input[feature] = val
+
+            input_array = np.array([[test_input['T_Supply'], test_input['T_Return'],
+                                     test_input['T_Outdoor'], test_input['T_Saturation']]])
+            input_scaled = scaler.transform(input_array)
+            prediction = model.predict(input_scaled)[0]
+            sim_data.append((val, prediction))
+
+        # Convert to DataFrame for plotting
+        sim_df = pd.DataFrame(sim_data, columns=[feature, "Predicted Energy (kWh)"])
+        st.markdown(f"#### 🔁 Varying: {feature}")
+        st.line_chart(sim_df.set_index(feature))
