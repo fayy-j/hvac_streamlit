@@ -75,27 +75,42 @@ t_outdoor = st.sidebar.slider("T_Outdoor (°C)", 2.0, 33.0, 16.3, 0.1)
 t_saturation = st.sidebar.slider("T_Saturation (°C)", 12.0, 27.0, 13.7, 0.1)
 
 # --- Simulated Live Prediction ---
+# --- Simulated Live Prediction ---
 st.subheader("Simulated Energy Prediction")
-if st.button("Start Simulation"):
-    for i in range(30):
-        input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
-        pred = model.predict(input_array)[0]
-        st.session_state.energy_buffer.append(pred)
-        st.metric(label="Predicted Energy (Live)", value=f"{pred:.2f} kWh")
 
-        energy_df = pd.DataFrame({
-            "Index": list(range(len(st.session_state.energy_buffer))),
-            "Energy": list(st.session_state.energy_buffer)
-        })
+# Initialize session state flag for simulation
+if "simulating" not in st.session_state:
+    st.session_state.simulating = False
 
-        line_chart = (
-            alt.Chart(energy_df)
-            .mark_line(interpolate="monotone", color="#4f92ff", strokeWidth=3)
-            .encode(x="Index", y="Energy")
-            .properties(width=700, height=300)
-        )
-        st.altair_chart(line_chart, use_container_width=True)
+# Start simulation if button clicked
+if st.button("Start Simulation") or st.session_state.simulating:
+    st.session_state.simulating = True  # Set simulating flag
+
+    input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
+    pred = model.predict(input_array)[0]
+    st.session_state.energy_buffer.append(pred)
+    st.metric(label="Predicted Energy (Live)", value=f"{pred:.2f} kWh")
+
+    energy_df = pd.DataFrame({
+        "Index": list(range(len(st.session_state.energy_buffer))),
+        "Energy": list(st.session_state.energy_buffer)
+    })
+
+    line_chart = (
+        alt.Chart(energy_df)
+        .mark_line(interpolate="monotone", color="#4f92ff", strokeWidth=3)
+        .encode(x="Index", y="Energy")
+        .properties(width=700, height=300)
+    )
+    st.altair_chart(line_chart, use_container_width=True)
+
+    # Stop after 30 points
+    if len(st.session_state.energy_buffer) >= 30:
+        st.session_state.simulating = False
+    else:
         time.sleep(0.5)
+        st.experimental_rerun()
+
 
 # --- Feature Importance ---
 st.subheader("Feature Importance")
@@ -148,8 +163,8 @@ st.subheader("Actual vs Predicted")
 comparison_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
 comparison_df['Index'] = comparison_df.index
 fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=comparison_df['Index'], y=comparison_df['Actual_Energy'], name='Actual', line=dict(color='skyblue')))
-fig2.add_trace(go.Scatter(x=comparison_df['Index'], y=comparison_df['Predicted_Energy'], name='Predicted', line=dict(color='pink')))
+fig2.add_trace(go.Scatter(x=comparison_df['Index'], y=comparison_df['Actual_Energy'], name='Actual', line=dict(color='blue')))
+fig2.add_trace(go.Scatter(x=comparison_df['Index'], y=comparison_df['Predicted_Energy'], name='Predicted', line=dict(color='darkpurple')))
 fig2.update_layout(title="Actual vs Predicted", xaxis_title="Index", yaxis_title="Energy (kWh)", height=500)
 st.plotly_chart(fig2, use_container_width=True)
 
