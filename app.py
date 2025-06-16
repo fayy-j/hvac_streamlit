@@ -66,11 +66,11 @@ with tab1:
     # --- Sliders for parameters ---
     col1, col2 = st.columns(2)
     with col1:
-        t_supply = st.slider("T_Supply (°C)", min_value=10.0, max_value=30.0, value=15.7, step=0.1)
-        t_outdoor = st.slider("T_Outdoor (°C)", min_value=10.0, max_value=60.0, value=16.3, step=0.1)
+        t_supply = st.slider("T_Supply (°C)", min_value=12.0, max_value=31.0, value=15.7, step=0.1)
+        t_outdoor = st.slider("T_Outdoor (°C)", min_value=2.0, max_value=33.0, value=16.3, step=0.1)
     with col2:
-        t_return = st.slider("T_Return (°C)", min_value=10.0, max_value=30.0, value=21.6, step=0.1)
-        t_saturation = st.slider("T_Saturation (%)", min_value=0.0, max_value=100.0, value=13.7, step=0.1)
+        t_return = st.slider("T_Return (°C)", min_value=12.0, max_value=26.0, value=21.6, step=0.1)
+        t_saturation = st.slider("T_Saturation (%)", min_value=12.0, max_value=27.0, value=13.7, step=0.1)
 
     # --- Predict and update buffer ---
     input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
