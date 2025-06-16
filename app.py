@@ -70,7 +70,7 @@ with tab1:
         t_outdoor = st.slider("T_Outdoor (°C)", min_value=2.0, max_value=33.0, value=16.3, step=0.1)
     with col2:
         t_return = st.slider("T_Return (°C)", min_value=12.0, max_value=26.0, value=21.6, step=0.1)
-        t_saturation = st.slider("T_Saturation (%)", min_value=12.0, max_value=27.0, value=13.7, step=0.1)
+        t_saturation = st.slider("T_Saturation (°C)", min_value=12.0, max_value=27.0, value=13.7, step=0.1)
 
     # --- Predict and update buffer ---
     input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
@@ -95,7 +95,7 @@ with tab1:
         .properties(
             width=600,
             height=300,
-            title="🔁 Live Predicted Energy Trend"
+            title="🔁 Predicted Energy Trend"
         )
     )
 
