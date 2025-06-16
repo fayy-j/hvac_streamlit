@@ -139,3 +139,45 @@ with tab5:
     })
 
     st.line_chart(comparison_df)
+
+with tab6:
+    st.subheader("🧪 Dynamic What-If Simulation")
+
+    st.markdown("Vary a parameter and see how it affects the predicted energy consumption.")
+
+    # Choose which feature to vary
+    feature_to_vary = st.selectbox("Select parameter to vary:", ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation'])
+
+    # Fixed values for other features
+    fixed_values = {
+        'T_Supply': 20.0,
+        'T_Return': 19.0,
+        'T_Outdoor': 55.0,
+        'T_Saturation': 60.0
+    }
+
+    # Define range for varying parameter
+    if feature_to_vary in ['T_Supply', 'T_Return']:
+        values = np.linspace(15, 30, 100)
+    elif feature_to_vary == 'T_Outdoor':
+        values = np.linspace(20, 80, 100)
+    else:
+        values = np.linspace(30, 100, 100)
+
+    # Generate predictions
+    predictions = []
+    for val in values:
+        input_vals = [fixed_values[feat] if feat != feature_to_vary else val for feat in ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']]
+        input_scaled = scaler.transform([input_vals])
+        pred = model.predict(input_scaled)[0]
+        predictions.append(pred)
+
+    # Plot
+    fig, ax = plt.subplots()
+    ax.plot(values, predictions, label="Predicted Energy", color='green')
+    ax.set_xlabel(feature_to_vary)
+    ax.set_ylabel("Predicted Energy (kWh)")
+    ax.set_title(f"Effect of {feature_to_vary} on Energy Consumption")
+    ax.grid(True)
+    st.pyplot(fig)
+
