@@ -154,23 +154,24 @@ with tab3:
     try:
         # Load and prepare daily data
         daily_df = pd.read_csv(daily_url)
-        daily_df = daily_df.sort_values("DayOfWeek")
-        daily_df = daily_df.set_index("DayOfWeek")  # ✅ no need to rename
+        daily_df = daily_df.sort_values("Day")
+        daily_df = daily_df.set_index("Day")  # ✅ Set Day as index
 
         # Load and prepare hourly data
         hourly_df = pd.read_csv(hourly_url)
         hourly_df = hourly_df.sort_values("Hour")
-        hourly_df = hourly_df.set_index("Hour")  # ✅ no need to rename
+        hourly_df = hourly_df.set_index("Hour")  # ✅ Set Hour as index
 
+        # Display side-by-side charts
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("### 📅 Average Energy by Day")
-            st.bar_chart(daily_df["Energy"])  # 📊 only plot the 'Energy' column
+            st.bar_chart(daily_df["Energy"])
 
         with col2:
             st.markdown("### 🕒 Average Energy by Hour")
-            st.line_chart(hourly_df["Energy"])  # 📈 only plot the 'Energy' column
+            st.line_chart(hourly_df["Energy"])
 
     except Exception as e:
         st.error(f"❌ Failed to load or plot CSVs: {e}")
