@@ -179,7 +179,7 @@ with tab5:
         # Actual energy trace
         fig.add_trace(go.Scatter(
             x=comparison_df['Index'],
-            y=comparison_df['actual_energy'],
+            y=comparison_df['Actual_energy'],
             mode='lines',
             name='Actual Energy',
             line=dict(color='royalblue')
@@ -188,7 +188,7 @@ with tab5:
         # Predicted energy trace
         fig.add_trace(go.Scatter(
             x=comparison_df['Index'],
-            y=comparison_df['predicted_energy'],
+            y=comparison_df['Predicted_energy'],
             mode='lines',
             name='Predicted Energy',
             line=dict(color='orange')
