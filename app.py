@@ -43,8 +43,11 @@ def load_model_and_data():
 
 # Load everything
 model, df, X, y, y_pred = load_model_and_data()
+
+# Initialize a deque to hold last 30 energy predictions
 if "energy_buffer" not in st.session_state:
     st.session_state.energy_buffer = deque(maxlen=30)
+    
 # --- Tabs ---
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🔮 Predict Energy", 
@@ -57,13 +60,8 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 
 
 # --- Tab 1: Predict Energy ---
-# --- Tab 1: Predict Energy ---
- 
-# Initialize a deque to hold last 30 energy predictions
-
-
 with tab1:
-    st.markdown("## 🔧 Live What-If Simulation Dashboard")
+    st.markdown("## 🔧 What-If Simulation")
     st.markdown("Adjust parameters to observe how predicted energy responds in real-time.")
 
     # --- Sliders for parameters ---
