@@ -46,7 +46,7 @@ for (let i = 0; i < 20; i++) {
 # --- Title ---
 st.markdown("""
     <h1 style='text-align: center; color: #6A5ACD;'>HVAC Energy Dashboard</h1>
-    <p style='text-align: center; color: #999;'>Real-time Simulation and Analysis</p>
+    <p style='text-align: center; color: #999;'>Simulation and Analysis</p>
 """, unsafe_allow_html=True)
 
 # --- Load Model and Data ---
