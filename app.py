@@ -70,21 +70,34 @@ with tab1:
 
 # --- Tab 2: Feature Importance ---
 with tab2:
-    st.subheader("📌 Feature Importance (Predefined Scores)")
+    st.subheader("📌 Feature Importance")
 
-    # Option 1: From list
-    features = ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']
-    scores = [0.35, 0.30, 0.20, 0.15]
+    # Updated features and importance scores (use % for visual)
+    features = ['T_Return', 'T_Saturation', 'T_Supply', 'T_Outdoor', 'RH_Supply', 'RH_Return', 'RH_Outdoor', 'SP_Return']
+    importance = [51, 33, 12, 3, 1, 1, 0, 0]
 
     feature_df = pd.DataFrame({
         'Feature': features,
-        'Importance': scores
-    }).sort_values('Importance', ascending=True)
+        'Importance (%)': importance
+    }).sort_values('Importance (%)', ascending=True)
 
-    fig, ax = plt.subplots()
-    ax.barh(feature_df['Feature'], feature_df['Importance'], color='orange')
-    ax.set_xlabel("Importance Score")
-    ax.set_title("Feature Importance")
+    # Plotting
+    fig, ax = plt.subplots(figsize=(8, 5))  # Control plot size
+
+    bars = ax.barh(feature_df['Feature'], feature_df['Importance (%)'], color='teal', edgecolor='black')
+    ax.set_xlabel("Importance (%)", fontsize=12)
+    ax.set_title("Feature Importance (Predefined)", fontsize=14, pad=10)
+
+    # Add value labels next to bars
+    for bar in bars:
+        width = bar.get_width()
+        ax.text(width + 1, bar.get_y() + bar.get_height()/2, f'{width}%', va='center', fontsize=10)
+
+    # Style
+    ax.grid(axis='x', linestyle='--', alpha=0.6)
+    ax.set_xlim(0, max(importance) + 10)  # leave space for labels
+    plt.tight_layout()
+
     st.pyplot(fig)
 
 # --- Tab 3: Daily and Hourly Averages ---
