@@ -150,7 +150,7 @@ with tab4:
     st.subheader("📈 Energy Consumption Trend")
 
     try:
-        df_trend = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/rawhvac.csv")
+        df_trend = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
         df_trend['Timestamp'] = pd.to_datetime(df_trend['Timestamp'])
         df_trend = df_trend[['Timestamp', 'Energy']].set_index('Timestamp')
 
@@ -160,70 +160,61 @@ with tab4:
         st.error(f"Failed to load trend data: {e}")
 
 # --- Tab 5: Actual vs Predicted ---
+import plotly.graph_objects as go
+import pandas as pd
+
 with tab5:
     st.subheader("🎯 Actual vs Predicted Energy")
 
-    # Checkbox to toggle plot visibility
-    show_plot = st.checkbox("Show Actual vs Predicted Plot")
+    # Load the CSV (update the URL/path if needed)
+    comparison_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
 
-    if show_plot:
-        # Read CSV (change the filename as needed)
-        comparison_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
+    # Add index for plotting
+    comparison_df['Index'] = comparison_df.index
 
-        # Add sample index for x-axis
-        comparison_df['Index'] = comparison_df.index
+    # Create interactive plot
+    fig = go.Figure()
 
-        # Plot with Plotly
-        fig = go.Figure()
+    # Add Actual Energy trace
+    fig.add_trace(go.Scatter(
+        x=comparison_df['Index'],
+        y=comparison_df['Actual_Energy'],
+        mode='lines',
+        name='Actual Energy (kWh)',
+        line=dict(color='royalblue')
+    ))
 
-        # Actual energy trace
-        fig.add_trace(go.Scatter(
-            x=comparison_df['Index'],
-            y=comparison_df['Actual_energy'],
-            mode='lines',
-            name='Actual Energy',
-            line=dict(color='royalblue')
-        ))
+    # Add Predicted Energy trace
+    fig.add_trace(go.Scatter(
+        x=comparison_df['Index'],
+        y=comparison_df['Predicted_Energy'],
+        mode='lines',
+        name='Predicted Energy (kWh)',
+        line=dict(color='orange')
+    ))
 
-        # Predicted energy trace
-        fig.add_trace(go.Scatter(
-            x=comparison_df['Index'],
-            y=comparison_df['Predicted_energy'],
-            mode='lines',
-            name='Predicted Energy',
-            line=dict(color='orange')
-        ))
-
-        # Layout and interactivity
-        fig.update_layout(
-            title="Actual vs Predicted Energy (Zoomable)",
-            xaxis_title="Sample Index",
-            yaxis_title="Energy (kWh)",  # ✅ labeled unit
-            hovermode="x unified",
-            height=500,
-            xaxis=dict(
-                rangeslider=dict(visible=True),  # ✅ interactive scroll
-                type="linear"
-            )
-        )
-
-        # Display plot
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("☝️ Check the box above to display the comparison plot.")
-
-    # Layout with horizontal scroll (via zooming/panning)
+    # Update layout for interactivity and polish
     fig.update_layout(
         title="Actual vs Predicted Energy (Zoomable)",
         xaxis_title="Sample Index",
-        yaxis_title="Energy",
+        yaxis_title="Energy (kWh)",
         hovermode="x unified",
         height=500,
         xaxis=dict(
-            rangeslider=dict(visible=True),  # 👈 enables horizontal zoom/pan
+            rangeslider=dict(visible=True),  # Enables horizontal scroll
             type="linear"
+        ),
+        legend=dict(
+            title="Legend",
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="center",
+            x=0.5
         )
     )
 
+    # Show the plot directly
     st.plotly_chart(fig, use_container_width=True)
+
 
