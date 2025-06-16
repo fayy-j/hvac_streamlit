@@ -15,24 +15,28 @@ st.markdown("Get predictions, explore feature importance, and visualize consumpt
 # --- Load Model and Data ---
 @st.cache_data
 def load_model_and_data():
-    data_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hvac_preprocessed.csv"
-    df = pd.read_csv(data_url)
+    # Load data with semicolon delimiter
+    data_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/rawhvac.csv.csv"
+    df = pd.read_csv(data_url, delimiter=';')
+    
+    # Drop timestamp if exists
     df = df.drop(columns=["Timestamp"], errors="ignore")
 
+    # Define features and target
     feature_cols = ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']
     X = df[feature_cols]
     y = df["Energy"]
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    # Use optimized Random Forest without scaling
+    model = RandomForestRegressor(n_estimators=200, max_depth=20, random_state=42)
+    model.fit(X, y)
 
-    model = RandomForestRegressor(n_estimators=200, random_state=42)
-    model.fit(X_scaled, y)
+    y_pred = model.predict(X)
 
-    y_pred = model.predict(X_scaled)
-    return model, scaler, df, X_scaled, y, y_pred
+    return model, df, X, y, y_pred
 
-model, scaler, df, X_scaled, y, y_pred = load_model_and_data()
+# Load everything
+model, df, X, y, y_pred = load_model_and_data()
 
 # --- Tabs ---
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -44,7 +48,7 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🧪 Dynamic What-If"
 ])
 
-# --- Tab 1: Predict Energy (What-if with form) ---
+# --- Tab 1: Predict Energy ---
 with tab1:
     st.subheader("🔧 What-If Simulation: Predict Energy")
 
@@ -61,8 +65,7 @@ with tab1:
 
     if submit:
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
-        input_scaled = scaler.transform(input_array)
-        prediction = model.predict(input_scaled)[0]
+        prediction = model.predict(input_array)[0]
         st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
 
 # --- Tab 2: Feature Importance ---
