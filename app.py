@@ -52,10 +52,10 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 
 
 # --- Tab 1: Predict Energy ---
+# --- Tab 1: Predict Energy ---
 with tab1:
     st.subheader("🔧 What-If Simulation: Predict Energy")
 
-    # --- Input form ---
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -67,48 +67,44 @@ with tab1:
 
         submit = st.form_submit_button("Predict")
 
-    # --- Prediction logic ---
     if submit:
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
         input_scaled = scaler.transform(input_array)
         prediction = model.predict(input_scaled)[0]
         st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
 
-        st.markdown("---")
-        st.markdown("### 📊 Effect of Each Parameter on Prediction")
+        # --- Dynamic Graph (added below prediction) ---
+        st.markdown("### 📈 Dynamic Impact of Each Parameter")
 
-        current_inputs = {
-            "T_Supply": t_supply,
-            "T_Return": t_return,
-            "T_Outdoor": t_outdoor,
-            "T_Saturation": t_saturation
+        # Define range for each parameter
+        param_ranges = {
+            "T_Supply": np.linspace(10, 30, 50),
+            "T_Return": np.linspace(10, 30, 50),
+            "T_Outdoor": np.linspace(10, 60, 50),
+            "T_Saturation": np.linspace(0, 100, 50)
         }
 
-        # Define ranges to simulate changes
-        sim_ranges = {
-            "T_Supply": np.arange(10, 31, 1),
-            "T_Return": np.arange(10, 31, 1),
-            "T_Outdoor": np.arange(5, 45, 1),
-            "T_Saturation": np.arange(10, 100, 2)
-        }
+        fig, ax = plt.subplots()
 
-        for feature in current_inputs:
-            values = []
-            for v in sim_ranges[feature]:
-                test_input = current_inputs.copy()
-                test_input[feature] = v
+        for param_name, values in param_ranges.items():
+            # Use the submitted values as baseline
+            base_values = [t_supply, t_return, t_outdoor, t_saturation]
+            temp_inputs = np.tile(base_values, (len(values), 1))
 
-                input_array = np.array([[test_input["T_Supply"],
-                                         test_input["T_Return"],
-                                         test_input["T_Outdoor"],
-                                         test_input["T_Saturation"]]])
-                input_scaled = scaler.transform(input_array)
-                pred_energy = model.predict(input_scaled)[0]
-                values.append((v, pred_energy))
+            # Replace one column with the range
+            idx = ["T_Supply", "T_Return", "T_Outdoor", "T_Saturation"].index(param_name)
+            temp_inputs[:, idx] = values
 
-            chart_df = pd.DataFrame(values, columns=[feature, "Predicted Energy (kWh)"])
-            st.markdown(f"#### 🔁 Varying: {feature}")
-            st.line_chart(chart_df.set_index(feature))
+            temp_scaled = scaler.transform(temp_inputs)
+            preds = model.predict(temp_scaled)
+
+            ax.plot(values, preds, label=param_name)
+
+        ax.set_xlabel("Parameter Value")
+        ax.set_ylabel("Predicted Energy (kWh)")
+        ax.set_title("Parameter vs Predicted Energy")
+        ax.legend()
+        st.pyplot(fig)
 
 with tab2:
     st.subheader("📌 Feature Importance")
