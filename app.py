@@ -10,6 +10,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import time
 import streamlit.components.v1 as components
+import os
+os.environ["PYTHONIOENCODING"] = "utf-8"
+
 
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
@@ -73,7 +76,7 @@ t_outdoor = st.sidebar.slider("T_Outdoor (\u00b0C)", 2.0, 33.0, 16.3, 0.1)
 t_saturation = st.sidebar.slider("T_Saturation (\u00b0C)", 12.0, 27.0, 13.7, 0.1)
 
 # --- Simulated Live Prediction ---
-st.subheader("\ud83c\udf1f Simulated Energy Prediction")
+st.subheader("Simulated Energy Prediction")
 if st.button("\u25b6 Start Simulation"):
     for i in range(30):
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
