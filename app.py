@@ -26,7 +26,7 @@ def load_and_train_model():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model = RandomForestRegressor(n_estimators=200, random_state=42)
     model.fit(X_scaled, y)
 
     return model, scaler
