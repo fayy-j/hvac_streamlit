@@ -117,8 +117,8 @@ with tab2:
 with tab3:
     st.subheader("📅 Daily and Hourly Energy Averages")
 
-    daily_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/avg_energy_by_day.csv"
-    hourly_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hourly_avg_energy.csv"
+    daily_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_day.csv"
+    hourly_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_hour.csv"
 
     try:
         # Load daily average data
