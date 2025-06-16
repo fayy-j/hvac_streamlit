@@ -73,7 +73,7 @@ with tab1:
 # --- Tab 2: Feature Importance ---
 
 with tab2:
-    st.subheader("📌 Feature Importance (Interactive)")
+    st.subheader("📌 Feature Importance")
 
     # Updated features and importance scores
     features = ['T_Return', 'T_Saturation', 'T_Supply', 'T_Outdoor', 'RH_Supply', 'RH_Return', 'RH_Outdoor', 'SP_Return']
@@ -103,7 +103,7 @@ with tab2:
     )
 
     fig.update_layout(
-        title="Feature Importance (Predefined)",
+        title="Feature Importance",
         xaxis_title="Importance (%)",
         yaxis_title=None,
         plot_bgcolor='white',
