@@ -91,24 +91,29 @@ with tab3:
     hourly_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hourly_avg_energy.csv"
 
     try:
+        # Load daily average data
         daily_df = pd.read_csv(daily_url)
-        daily_df['Date'] = pd.to_datetime(daily_df['Date'])
+        daily_df = daily_df.sort_values('DayOfWeek')  # Optional: ensure day order
+        daily_df = daily_df.rename(columns={"DayOfWeek": "index"}).set_index("index")
 
+        # Load hourly average data
         hourly_df = pd.read_csv(hourly_url)
         hourly_df = hourly_df.sort_values('Hour')
+        hourly_df = hourly_df.rename(columns={"Hour": "index"}).set_index("index")
 
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("### 📅 Daily Energy")
-            st.line_chart(daily_df.rename(columns={'Date': 'index'}).set_index('index'))
+            st.markdown("### 📅 Average Energy by Day")
+            st.bar_chart(daily_df)
 
         with col2:
-            st.markdown("### 🕒 Hourly Energy")
-            st.bar_chart(hourly_df.rename(columns={'Hour': 'index'}).set_index('index'))
+            st.markdown("### 🕒 Average Energy by Hour")
+            st.line_chart(hourly_df)
 
     except Exception as e:
-        st.error(f"Failed to load CSVs: {e}")
+        st.error(f"❌ Failed to load or plot CSVs: {e}")
+
 
 # --- Tab 4: Consumption Trend ---
 with tab4:
