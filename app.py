@@ -16,7 +16,7 @@ st.markdown("Get predictions, explore feature importance, and visualize consumpt
 @st.cache_data
 def load_model_and_data():
     # Load data with semicolon delimiter
-    data_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/rawhvac.csv.csv"
+    data_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/rawhvac.csv"
     df = pd.read_csv(data_url, delimiter=';')
     
     # Drop timestamp if exists
@@ -124,7 +124,7 @@ with tab4:
     st.subheader("📈 Energy Consumption Trend")
 
     try:
-        df_trend = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/hvac_preprocessed.csv")
+        df_trend = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/rawhvac.csv")
         df_trend['Timestamp'] = pd.to_datetime(df_trend['Timestamp'])
         df_trend = df_trend[['Timestamp', 'Energy']].set_index('Timestamp')
 
