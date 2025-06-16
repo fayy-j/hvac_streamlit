@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
+import plotly.express as px
+
 
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
@@ -69,10 +71,11 @@ with tab1:
         st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
 
 # --- Tab 2: Feature Importance ---
-with tab2:
-    st.subheader("📌 Feature Importance")
 
-    # Updated features and importance scores (use % for visual)
+with tab2:
+    st.subheader("📌 Feature Importance (Interactive)")
+
+    # Updated features and importance scores
     features = ['T_Return', 'T_Saturation', 'T_Supply', 'T_Outdoor', 'RH_Supply', 'RH_Return', 'RH_Outdoor', 'SP_Return']
     importance = [51, 33, 12, 3, 1, 1, 0, 0]
 
@@ -81,24 +84,34 @@ with tab2:
         'Importance (%)': importance
     }).sort_values('Importance (%)', ascending=True)
 
-    # Plotting
-    fig, ax = plt.subplots(figsize=(8, 5))  # Control plot size
+    # Create interactive horizontal bar chart
+    fig = px.bar(
+        feature_df,
+        x='Importance (%)',
+        y='Feature',
+        orientation='h',
+        text='Importance (%)',
+        color='Importance (%)',
+        color_continuous_scale='Tealgrn',
+        height=400  # make it smaller
+    )
 
-    bars = ax.barh(feature_df['Feature'], feature_df['Importance (%)'], color='teal', edgecolor='black')
-    ax.set_xlabel("Importance (%)", fontsize=12)
-    ax.set_title("Feature Importance (Predefined)", fontsize=14, pad=10)
+    fig.update_traces(
+        textposition='outside',
+        marker_line_color='black',
+        marker_line_width=0.8
+    )
 
-    # Add value labels next to bars
-    for bar in bars:
-        width = bar.get_width()
-        ax.text(width + 1, bar.get_y() + bar.get_height()/2, f'{width}%', va='center', fontsize=10)
+    fig.update_layout(
+        title="Feature Importance (Predefined)",
+        xaxis_title="Importance (%)",
+        yaxis_title=None,
+        plot_bgcolor='white',
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
 
-    # Style
-    ax.grid(axis='x', linestyle='--', alpha=0.6)
-    ax.set_xlim(0, max(importance) + 10)  # leave space for labels
-    plt.tight_layout()
+    st.plotly_chart(fig, use_container_width=True)
 
-    st.pyplot(fig)
 
 # --- Tab 3: Daily and Hourly Averages ---
 with tab3:
