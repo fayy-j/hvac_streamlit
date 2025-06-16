@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
-
+import plotly.graph_objects as go
 
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
@@ -161,11 +161,69 @@ with tab4:
 
 # --- Tab 5: Actual vs Predicted ---
 with tab5:
-    st.subheader("🎯 Actual vs Predicted Energy (Full Dataset)")
+    st.subheader("🎯 Actual vs Predicted Energy")
 
-    comparison_df = pd.DataFrame({
-        'Actual': y,
-        'Predicted': y_pred
-    })
+    # Checkbox to toggle plot visibility
+    show_plot = st.checkbox("Show Actual vs Predicted Plot")
 
-    st.line_chart(comparison_df)
+    if show_plot:
+        # Read CSV (change the filename as needed)
+        comparison_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
+
+        # Add sample index for x-axis
+        comparison_df['Index'] = comparison_df.index
+
+        # Plot with Plotly
+        fig = go.Figure()
+
+        # Actual energy trace
+        fig.add_trace(go.Scatter(
+            x=comparison_df['Index'],
+            y=comparison_df['actual_energy'],
+            mode='lines',
+            name='Actual Energy',
+            line=dict(color='royalblue')
+        ))
+
+        # Predicted energy trace
+        fig.add_trace(go.Scatter(
+            x=comparison_df['Index'],
+            y=comparison_df['predicted_energy'],
+            mode='lines',
+            name='Predicted Energy',
+            line=dict(color='orange')
+        ))
+
+        # Layout and interactivity
+        fig.update_layout(
+            title="Actual vs Predicted Energy (Zoomable)",
+            xaxis_title="Sample Index",
+            yaxis_title="Energy (kWh)",  # ✅ labeled unit
+            hovermode="x unified",
+            height=500,
+            xaxis=dict(
+                rangeslider=dict(visible=True),  # ✅ interactive scroll
+                type="linear"
+            )
+        )
+
+        # Display plot
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("☝️ Check the box above to display the comparison plot.")
+
+    # Layout with horizontal scroll (via zooming/panning)
+    fig.update_layout(
+        title="Actual vs Predicted Energy (Zoomable)",
+        xaxis_title="Sample Index",
+        yaxis_title="Energy",
+        hovermode="x unified",
+        height=500,
+        xaxis=dict(
+            rangeslider=dict(visible=True),  # 👈 enables horizontal zoom/pan
+            type="linear"
+        )
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
