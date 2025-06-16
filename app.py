@@ -67,16 +67,14 @@ with tab1:
 
         submit = st.form_submit_button("Predict")
 
-    if submit:
+        if submit:
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
-        input_scaled = scaler.transform(input_array)
-        prediction = model.predict(input_scaled)[0]
+        prediction = model.predict(input_array)[0]
         st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
 
-        # --- Dynamic Graph (added below prediction) ---
+        # ✅ Add dynamic chart below
         st.markdown("### 📈 Dynamic Impact of Each Parameter")
 
-        # Define range for each parameter
         param_ranges = {
             "T_Supply": np.linspace(10, 30, 50),
             "T_Return": np.linspace(10, 30, 50),
@@ -87,24 +85,35 @@ with tab1:
         fig, ax = plt.subplots()
 
         for param_name, values in param_ranges.items():
-            # Use the submitted values as baseline
-            base_values = [t_supply, t_return, t_outdoor, t_saturation]
-            temp_inputs = np.tile(base_values, (len(values), 1))
+            # Keep base values the same for others
+            base = {
+                "T_Supply": t_supply,
+                "T_Return": t_return,
+                "T_Outdoor": t_outdoor,
+                "T_Saturation": t_saturation
+            }
 
-            # Replace one column with the range
-            idx = ["T_Supply", "T_Return", "T_Outdoor", "T_Saturation"].index(param_name)
-            temp_inputs[:, idx] = values
+            inputs = []
+            for v in values:
+                temp = base.copy()
+                temp[param_name] = v
+                inputs.append([
+                    temp["T_Supply"],
+                    temp["T_Return"],
+                    temp["T_Outdoor"],
+                    temp["T_Saturation"]
+                ])
 
-            temp_scaled = scaler.transform(temp_inputs)
-            preds = model.predict(temp_scaled)
-
+            inputs = np.array(inputs)
+            preds = model.predict(inputs)
             ax.plot(values, preds, label=param_name)
 
         ax.set_xlabel("Parameter Value")
         ax.set_ylabel("Predicted Energy (kWh)")
-        ax.set_title("Parameter vs Predicted Energy")
+        ax.set_title("Effect of Varying Each Parameter on Energy")
         ax.legend()
         st.pyplot(fig)
+
 
 with tab2:
     st.subheader("📌 Feature Importance")
