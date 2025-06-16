@@ -57,11 +57,11 @@ with tab1:
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
         with col1:
-            t_supply = st.number_input("T_Supply (°C)", value=20.0, step=0.1)
-            t_outdoor = st.number_input("T_Outdoor (°C)", value=55.0, step=0.1)
+            t_supply = st.number_input("T_Supply (°C)", value=15.70, step=0.1)
+            t_outdoor = st.number_input("T_Outdoor (°C)", value=16.30, step=0.1)
         with col2:
-            t_return = st.number_input("T_Return (°C)", value=19.0, step=0.1)
-            t_saturation = st.number_input("T_Saturation (%)", value=60.0, step=0.1)
+            t_return = st.number_input("T_Return (°C)", value=21.60, step=0.1)
+            t_saturation = st.number_input("T_Saturation (%)", value=13.70, step=0.1)
 
         submit = st.form_submit_button("Predict")
 
