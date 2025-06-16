@@ -10,6 +10,7 @@ from collections import deque
 import altair as alt
 
 
+
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 
@@ -42,7 +43,8 @@ def load_model_and_data():
 
 # Load everything
 model, df, X, y, y_pred = load_model_and_data()
-
+if "energy_buffer" not in st.session_state:
+    st.session_state.energy_buffer = deque(maxlen=30)
 # --- Tabs ---
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🔮 Predict Energy", 
@@ -56,11 +58,9 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 
 # --- Tab 1: Predict Energy ---
 # --- Tab 1: Predict Energy ---
-with tab1:
  
 # Initialize a deque to hold last 30 energy predictions
-if "energy_buffer" not in st.session_state:
-    st.session_state.energy_buffer = deque(maxlen=30)
+
 
 with tab1:
     st.markdown("## 🔧 Live What-If Simulation Dashboard")
