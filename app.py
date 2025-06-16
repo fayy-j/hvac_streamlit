@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from collections import deque
 import altair as alt
 
-# Try importing streamlit_lottie
+# --- Try Importing streamlit_lottie ---
 try:
     from streamlit_lottie import st_lottie
     import requests
@@ -17,6 +17,7 @@ except ImportError:
     use_lottie = False
 
 # --- Page Config ---
+import streamlit as st
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 
 # --- Title ---
@@ -29,22 +30,27 @@ st.markdown("""
     </p>
 """, unsafe_allow_html=True)
 
-# --- Optional Cute Lottie Animation ---
+# --- Lottie Animation (Below Title) ---
 if use_lottie:
     def load_lottieurl(url):
-        r = requests.get(url)
-        if r.status_code != 200:
+        try:
+            r = requests.get(url)
+            if r.status_code != 200:
+                return None
+            return r.json()
+        except:
             return None
-        return r.json()
 
-    with st.sidebar:
-        st.markdown("### 👟 Cutie Walk-in 👟")
-        lottie_url = "https://assets9.lottiefiles.com/packages/lf20_k86wxpgr.json"  # walking character
-        lottie_json = load_lottieurl(lottie_url)
-        if lottie_json:
-            st_lottie(lottie_json, height=180, speed=1, key="cute-walker")
+    # Replace with your own Lottie JSON file URL (GitHub raw link or LottieFiles CDN)
+    lottie_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/Animation%20-%201750105697134.json" 
+    lottie_json = load_lottieurl(lottie_url)
+
+    if lottie_json:
+        st_lottie(lottie_json, height=200, speed=1, key="cute-walker", quality="low", loop=True)
+    else:
+        st.markdown("<div style='text-align:center; font-size:30px;'>🚶‍♂️</div>", unsafe_allow_html=True)
 else:
-    st.sidebar.markdown("🚶‍♀️ *Install `streamlit-lottie` to see animation*")
+    st.markdown("<div style='text-align:center; font-size:30px;'>🚶‍♀️ (Install <code>streamlit-lottie</code> to see animation)</div>", unsafe_allow_html=True)
 
 
 # --- Load Model and Data ---
