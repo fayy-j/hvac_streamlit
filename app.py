@@ -41,6 +41,16 @@ def load_model_and_data():
 model, df, X, y, y_pred = load_model_and_data()
 
 # --- Tabs ---
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "🔮 Predict Energy", 
+    "📊 Feature Importance", 
+    "📆 Daily & Hourly Averages", 
+    "📈 Consumption Trend", 
+    "🎯 Actual vs Predicted",
+    "📊 Parameter Simulation"
+])
+
+
 # --- Tab 1: Predict Energy ---
 with tab1:
     st.subheader("🔧 What-If Simulation: Predict Energy")
