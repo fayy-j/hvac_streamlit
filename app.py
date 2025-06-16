@@ -49,13 +49,12 @@ if "energy_buffer" not in st.session_state:
     st.session_state.energy_buffer = deque(maxlen=30)
     
 # --- Tabs ---
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🔮 Predict Energy", 
     "📊 Feature Importance", 
     "📆 Daily & Hourly Averages", 
     "📈 Consumption Trend", 
     "🎯 Actual vs Predicted",
-    "📊 Parameter Simulation"
 ])
 
 
@@ -153,28 +152,29 @@ with tab3:
     hourly_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_hour.csv"
 
     try:
-        # Load daily average data
+        # Load and prepare daily data
         daily_df = pd.read_csv(daily_url)
-        daily_df = daily_df.sort_values('Day')  # Optional: ensure day order
-        daily_df = daily_df.rename(columns={"DayOfWeek": "index"}).set_index("index")
+        daily_df = daily_df.sort_values("DayOfWeek")
+        daily_df = daily_df.set_index("DayOfWeek")  # ✅ no need to rename
 
-        # Load hourly average data
+        # Load and prepare hourly data
         hourly_df = pd.read_csv(hourly_url)
-        hourly_df = hourly_df.sort_values('Hour')
-        hourly_df = hourly_df.rename(columns={"Hour": "index"}).set_index("index")
+        hourly_df = hourly_df.sort_values("Hour")
+        hourly_df = hourly_df.set_index("Hour")  # ✅ no need to rename
 
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("### 📅 Average Energy by Day")
-            st.bar_chart(daily_df)
+            st.bar_chart(daily_df["Energy"])  # 📊 only plot the 'Energy' column
 
         with col2:
             st.markdown("### 🕒 Average Energy by Hour")
-            st.line_chart(hourly_df)
+            st.line_chart(hourly_df["Energy"])  # 📈 only plot the 'Energy' column
 
     except Exception as e:
         st.error(f"❌ Failed to load or plot CSVs: {e}")
+
 
 
 # --- Tab 4: Consumption Trend ---
