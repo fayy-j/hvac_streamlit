@@ -35,12 +35,13 @@ def load_model_and_data():
 model, scaler, df, X_scaled, y, y_pred = load_model_and_data()
 
 # --- Tabs ---
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🔮 Predict Energy", 
     "📊 Feature Importance", 
     "📆 Daily & Hourly Averages", 
     "📈 Consumption Trend", 
-    "🎯 Actual vs Predicted"
+    "🎯 Actual vs Predicted",
+    "🧪 Dynamic What-If"
 ])
 
 # --- Tab 1: Predict Energy (What-if with form) ---
