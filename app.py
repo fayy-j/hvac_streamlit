@@ -201,7 +201,7 @@ with tab5:
         hovermode="x unified",
         height=500,
         xaxis=dict(
-            rangeslider=dict(visible=True),  # Enables horizontal scroll
+            rangeslider=dict(visible=False),  # Enables horizontal scroll
             type="linear"
         ),
         legend=dict(
