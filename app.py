@@ -13,7 +13,6 @@ import streamlit.components.v1 as components
 import os
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
-
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 
@@ -70,19 +69,19 @@ if "energy_buffer" not in st.session_state:
 
 # --- Controls ---
 st.sidebar.title("Control Panel")
-t_supply = st.sidebar.slider("T_Supply (\u00b0C)", 12.0, 31.0, 15.7, 0.1)
-t_return = st.sidebar.slider("T_Return (\u00b0C)", 12.0, 26.0, 21.6, 0.1)
-t_outdoor = st.sidebar.slider("T_Outdoor (\u00b0C)", 2.0, 33.0, 16.3, 0.1)
-t_saturation = st.sidebar.slider("T_Saturation (\u00b0C)", 12.0, 27.0, 13.7, 0.1)
+t_supply = st.sidebar.slider("T_Supply (°C)", 12.0, 31.0, 15.7, 0.1)
+t_return = st.sidebar.slider("T_Return (°C)", 12.0, 26.0, 21.6, 0.1)
+t_outdoor = st.sidebar.slider("T_Outdoor (°C)", 2.0, 33.0, 16.3, 0.1)
+t_saturation = st.sidebar.slider("T_Saturation (°C)", 12.0, 27.0, 13.7, 0.1)
 
 # --- Simulated Live Prediction ---
 st.subheader("Simulated Energy Prediction")
-if st.button("\u25b6 Start Simulation"):
+if st.button("Start Simulation"):
     for i in range(30):
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
         pred = model.predict(input_array)[0]
         st.session_state.energy_buffer.append(pred)
-        st.metric(label="\u26a1 Predicted Energy (Live)", value=f"{pred:.2f} kWh")
+        st.metric(label="Predicted Energy (Live)", value=f"{pred:.2f} kWh")
 
         energy_df = pd.DataFrame({
             "Index": list(range(len(st.session_state.energy_buffer))),
@@ -99,7 +98,7 @@ if st.button("\u25b6 Start Simulation"):
         time.sleep(0.5)
 
 # --- Feature Importance ---
-st.subheader("\ud83d\udccc Feature Importance")
+st.subheader("Feature Importance")
 features = ['T_Return', 'T_Saturation', 'T_Supply', 'T_Outdoor', 'RH_Supply', 'RH_Return', 'RH_Outdoor', 'SP_Return']
 importance = [51, 33, 12, 3, 1, 1, 0, 0]
 feature_df = pd.DataFrame({'Feature': features, 'Importance (%)': importance}).sort_values("Importance (%)")
@@ -112,7 +111,7 @@ fig.update_layout(height=400, plot_bgcolor='white')
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Daily and Hourly ---
-st.subheader("\ud83d\uddd3 Average Energy by Day and Hour")
+st.subheader("Average Energy by Day and Hour")
 daily_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_day.csv"
 hourly_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_hour.csv"
 
@@ -126,16 +125,16 @@ try:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("#### \ud83d\udcc5 Daily Average")
+        st.markdown("#### Daily Average")
         st.bar_chart(daily_df.set_index("Day"))
     with col2:
-        st.markdown("#### \u23f0 Hourly Average")
+        st.markdown("#### Hourly Average")
         st.line_chart(hourly_df.set_index("Hour"))
 except Exception as e:
     st.error(f"Failed to load averages: {e}")
 
 # --- Trend ---
-st.subheader("\ud83d\udcc8 Energy Trend Over Time")
+st.subheader("Energy Trend Over Time")
 try:
     df_trend = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
     df_trend['Timestamp'] = pd.to_datetime(df_trend['Timestamp'])
@@ -145,7 +144,7 @@ except Exception as e:
     st.error(f"Trend data error: {e}")
 
 # --- Actual vs Predicted ---
-st.subheader("\ud83c\udf1f Actual vs Predicted")
+st.subheader("Actual vs Predicted")
 comparison_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/predicted_vs_actual_energy.csv")
 comparison_df['Index'] = comparison_df.index
 fig2 = go.Figure()
