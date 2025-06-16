@@ -142,43 +142,27 @@ with tab5:
     st.line_chart(comparison_df)
 
 with tab6:
-    st.subheader("🧪 Dynamic What-If Simulation")
+    st.subheader("🧪 Real-Time What-If Simulation (All Parameters)")
 
-    st.markdown("Vary a parameter and see how it affects the predicted energy consumption.")
+    st.markdown("Adjust any parameter and instantly see the predicted energy consumption.")
 
-    # Choose which feature to vary
-    feature_to_vary = st.selectbox("Select parameter to vary:", ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation'])
+    # --- Sliders for all inputs ---
+    col1, col2 = st.columns(2)
 
-    # Fixed values for other features
-    fixed_values = {
-        'T_Supply': 20.0,
-        'T_Return': 19.0,
-        'T_Outdoor': 55.0,
-        'T_Saturation': 60.0
-    }
+    with col1:
+        t_supply = st.slider("T_Supply (°C)", min_value=10.0, max_value=30.0, value=20.0, step=0.1)
+        t_return = st.slider("T_Return (°C)", min_value=10.0, max_value=30.0, value=19.0, step=0.1)
 
-    # Define range for varying parameter
-    if feature_to_vary in ['T_Supply', 'T_Return']:
-        values = np.linspace(15, 30, 100)
-    elif feature_to_vary == 'T_Outdoor':
-        values = np.linspace(20, 80, 100)
-    else:
-        values = np.linspace(30, 100, 100)
+    with col2:
+        t_outdoor = st.slider("T_Outdoor (°C)", min_value=20.0, max_value=80.0, value=55.0, step=0.5)
+        t_saturation = st.slider("T_Saturation (%)", min_value=30.0, max_value=100.0, value=60.0, step=1.0)
 
-    # Generate predictions
-    predictions = []
-    for val in values:
-        input_vals = [fixed_values[feat] if feat != feature_to_vary else val for feat in ['T_Supply', 'T_Return', 'T_Outdoor', 'T_Saturation']]
-        input_scaled = scaler.transform([input_vals])
-        pred = model.predict(input_scaled)[0]
-        predictions.append(pred)
+    # --- Predict ---
+    input_vals = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
+    input_scaled = scaler.transform(input_vals)
+    pred_energy = model.predict(input_scaled)[0]
 
-    # Plot
-    fig, ax = plt.subplots()
-    ax.plot(values, predictions, label="Predicted Energy", color='green')
-    ax.set_xlabel(feature_to_vary)
-    ax.set_ylabel("Predicted Energy (kWh)")
-    ax.set_title(f"Effect of {feature_to_vary} on Energy Consumption")
-    ax.grid(True)
-    st.pyplot(fig)
+    # --- Show Prediction ---
+    st.metric(label="⚡ Predicted Energy Consumption", value=f"{pred_energy:.2f} kWh")
+
 
