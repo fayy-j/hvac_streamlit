@@ -7,36 +7,45 @@ import plotly.express as px
 import plotly.graph_objects as go
 from collections import deque
 import altair as alt
-import requests
-from streamlit_lottie import st_lottie
+
+# Try importing streamlit_lottie
+try:
+    from streamlit_lottie import st_lottie
+    import requests
+    use_lottie = True
+except ImportError:
+    use_lottie = False
 
 # --- Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 
-# --- Load Lottie Animation ---
-def load_lottie_url(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
-
-lottie_url = "https://assets7.lottiefiles.com/packages/lf20_yd9ycrti.json"  # Cute walking figure
-lottie_cute = load_lottie_url(lottie_url)
-
 # --- Title ---
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.markdown("""
-        <h1 style='text-align: left; color:#333;'>
-            HVAC Energy Consumption Dashboard
-        </h1>
-        <p style='font-size:18px;'>
-            Analyze, simulate, and monitor energy patterns.
-        </p>
-    """, unsafe_allow_html=True)
-with col2:
-    if lottie_cute:
-        st_lottie(lottie_cute, speed=1, height=120, key="cute_walk")
+st.markdown("""
+    <h1 style='text-align: center; color:#333;'>
+        HVAC Energy Consumption Dashboard
+    </h1>
+    <p style='text-align: center; font-size:18px;'>
+        Analyze, simulate, and monitor energy patterns.
+    </p>
+""", unsafe_allow_html=True)
+
+# --- Optional Cute Lottie Animation ---
+if use_lottie:
+    def load_lottieurl(url):
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+
+    with st.sidebar:
+        st.markdown("### 👟 Cutie Walk-in 👟")
+        lottie_url = "https://assets9.lottiefiles.com/packages/lf20_k86wxpgr.json"  # walking character
+        lottie_json = load_lottieurl(lottie_url)
+        if lottie_json:
+            st_lottie(lottie_json, height=180, speed=1, key="cute-walker")
+else:
+    st.sidebar.markdown("🚶‍♀️ *Install `streamlit-lottie` to see animation*")
+
 
 # --- Load Model and Data ---
 @st.cache_data
@@ -61,42 +70,39 @@ if "energy_buffer" not in st.session_state:
     st.session_state.energy_buffer = deque(maxlen=30)
 
 # --- Section 1: Predict Energy ---
-with st.expander("🛠️ What-If Simulation: Predict Energy", expanded=True):
-    st.markdown("Adjust temperature values to simulate the predicted energy in real-time.")
+with st.expander("🔧 What-If Simulation: Predict Energy", expanded=True):
+    st.markdown("Adjust parameters to observe predicted energy in real-time.")
 
     col1, col2 = st.columns(2)
     with col1:
-        t_supply = st.slider("T_Supply (°C)", 12.0, 31.0, 15.7, 0.1, help="Temperature of supply air")
-        t_outdoor = st.slider("T_Outdoor (°C)", 2.0, 33.0, 16.3, 0.1, help="Outdoor ambient temperature")
+        t_supply = st.slider("T_Supply (°C)", 12.0, 31.0, 15.7, 0.1)
+        t_outdoor = st.slider("T_Outdoor (°C)", 2.0, 33.0, 16.3, 0.1)
     with col2:
-        t_return = st.slider("T_Return (°C)", 12.0, 26.0, 21.6, 0.1, help="Temperature of return air")
-        t_saturation = st.slider("T_Saturation (°C)", 12.0, 27.0, 13.7, 0.1, help="Saturation temperature at coil")
+        t_return = st.slider("T_Return (°C)", 12.0, 26.0, 21.6, 0.1)
+        t_saturation = st.slider("T_Saturation (°C)", 12.0, 27.0, 13.7, 0.1)
 
     input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
     prediction = model.predict(input_array)[0]
     st.session_state.energy_buffer.append(prediction)
 
-    color = "red" if prediction > 20 else "green"
-    st.metric(label="🔋 Predicted Energy", value=f"{prediction:.2f} kWh")
+    st.metric(label="Predicted Energy", value=f"{prediction:.2f} kWh")
 
     energy_df = pd.DataFrame({
         "Index": list(range(len(st.session_state.energy_buffer))),
         "Energy": list(st.session_state.energy_buffer)
     })
 
-    st.altair_chart(
+    line_chart = (
         alt.Chart(energy_df)
-        .mark_line(interpolate="monotone", color="#FF7F0E", strokeWidth=3)
+        .mark_line(interpolate="monotone", color="orange", strokeWidth=3)
         .encode(
-            x=alt.X("Index", title="Simulation Iteration"),
+            x=alt.X("Index", title="Time (simulated updates)"),
             y=alt.Y("Energy", title="Predicted Energy (kWh)")
         )
-        .properties(title="📉 Live Prediction Trend", width=650, height=300),
-        use_container_width=True
+        .properties(width=600, height=300, title="Predicted Energy Trend")
     )
 
-    if st.button("🔄 Reset Trend"):
-        st.session_state.energy_buffer.clear()
+    st.altair_chart(line_chart, use_container_width=True)
 
 # --- Section 2: Feature Importance ---
 with st.expander("📌 Feature Importance", expanded=False):
@@ -126,25 +132,29 @@ with st.expander("📌 Feature Importance", expanded=False):
     )
     st.plotly_chart(fig, use_container_width=True)
 
+
 # --- Section 3: Daily and Hourly Averages ---
 with st.expander("📅 Daily & Hourly Energy Averages", expanded=False):
     try:
         daily_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_day.csv")
         hourly_df = pd.read_csv("https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/average_energy_by_hour.csv")
 
+        ordered_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        daily_df['Day'] = pd.Categorical(daily_df['Day'], categories=ordered_days, ordered=True)
         daily_df = daily_df.sort_values("Day").set_index("Day")
         hourly_df = hourly_df.sort_values("Hour").set_index("Hour")
 
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("### 📊 Average Energy by Day")
+            st.markdown("### Average Energy by Day")
             st.bar_chart(daily_df["Energy"])
         with col2:
-            st.markdown("### ⏰ Average Energy by Hour")
+            st.markdown("### Average Energy by Hour")
             st.line_chart(hourly_df["Energy"])
 
     except Exception as e:
         st.error(f"Error loading averages: {e}")
+
 
 # --- Section 4: Consumption Trend ---
 with st.expander("📈 Historical Energy Consumption Trend", expanded=False):
@@ -155,6 +165,7 @@ with st.expander("📈 Historical Energy Consumption Trend", expanded=False):
         st.line_chart(df_trend)
     except Exception as e:
         st.error(f"Error loading trend data: {e}")
+
 
 # --- Section 5: Actual vs Predicted ---
 with st.expander("🎯 Actual vs Predicted Energy", expanded=False):
@@ -177,6 +188,7 @@ with st.expander("🎯 Actual vs Predicted Energy", expanded=False):
         st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
         st.error(f"Error loading actual vs predicted data: {e}")
+
 
 # --- Footer ---
 st.markdown("""
