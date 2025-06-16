@@ -67,7 +67,7 @@ with tab1:
 
         submit = st.form_submit_button("Predict")
 
-        if submit:
+    if submit:
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
         prediction = model.predict(input_array)[0]
         st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
