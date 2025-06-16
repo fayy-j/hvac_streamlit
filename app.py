@@ -251,3 +251,13 @@ with tab5:
     st.plotly_chart(fig, use_container_width=True)
 
 
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; font-size: 13px; color: gray;'>
+        © 2025 fayy-j · HVAC Energy Dashboard .
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
