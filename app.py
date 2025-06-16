@@ -41,19 +41,11 @@ def load_model_and_data():
 model, df, X, y, y_pred = load_model_and_data()
 
 # --- Tabs ---
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "🔮 Predict Energy", 
-    "📊 Feature Importance", 
-    "📆 Daily & Hourly Averages", 
-    "📈 Consumption Trend", 
-    "🎯 Actual vs Predicted",
-    "🧪 Dynamic What-If"
-])
-
 # --- Tab 1: Predict Energy ---
 with tab1:
     st.subheader("🔧 What-If Simulation: Predict Energy")
 
+    # --- Input form ---
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -65,12 +57,48 @@ with tab1:
 
         submit = st.form_submit_button("Predict")
 
+    # --- Prediction logic ---
     if submit:
         input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
-        prediction = model.predict(input_array)[0]
+        input_scaled = scaler.transform(input_array)
+        prediction = model.predict(input_scaled)[0]
         st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
 
-# --- Tab 2: Feature Importance ---
+        st.markdown("---")
+        st.markdown("### 📊 Effect of Each Parameter on Prediction")
+
+        current_inputs = {
+            "T_Supply": t_supply,
+            "T_Return": t_return,
+            "T_Outdoor": t_outdoor,
+            "T_Saturation": t_saturation
+        }
+
+        # Define ranges to simulate changes
+        sim_ranges = {
+            "T_Supply": np.arange(10, 31, 1),
+            "T_Return": np.arange(10, 31, 1),
+            "T_Outdoor": np.arange(5, 45, 1),
+            "T_Saturation": np.arange(10, 100, 2)
+        }
+
+        for feature in current_inputs:
+            values = []
+            for v in sim_ranges[feature]:
+                test_input = current_inputs.copy()
+                test_input[feature] = v
+
+                input_array = np.array([[test_input["T_Supply"],
+                                         test_input["T_Return"],
+                                         test_input["T_Outdoor"],
+                                         test_input["T_Saturation"]]])
+                input_scaled = scaler.transform(input_array)
+                pred_energy = model.predict(input_scaled)[0]
+                values.append((v, pred_energy))
+
+            chart_df = pd.DataFrame(values, columns=[feature, "Predicted Energy (kWh)"])
+            st.markdown(f"#### 🔁 Varying: {feature}")
+            st.line_chart(chart_df.set_index(feature))
 
 with tab2:
     st.subheader("📌 Feature Importance")
