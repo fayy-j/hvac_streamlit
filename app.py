@@ -6,6 +6,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 import plotly.graph_objects as go
+from collections import deque
+import altair as alt
+
 
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
@@ -54,8 +57,16 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # --- Tab 1: Predict Energy ---
 # --- Tab 1: Predict Energy ---
 with tab1:
-    st.subheader("🔧 What-If Simulation: Predict Energy (Live Update)")
+ 
+# Initialize a deque to hold last 30 energy predictions
+if "energy_buffer" not in st.session_state:
+    st.session_state.energy_buffer = deque(maxlen=30)
 
+with tab1:
+    st.markdown("## 🔧 Live What-If Simulation Dashboard")
+    st.markdown("Adjust parameters to observe how predicted energy responds in real-time.")
+
+    # --- Sliders for parameters ---
     col1, col2 = st.columns(2)
     with col1:
         t_supply = st.slider("T_Supply (°C)", min_value=10.0, max_value=30.0, value=15.7, step=0.1)
@@ -64,51 +75,34 @@ with tab1:
         t_return = st.slider("T_Return (°C)", min_value=10.0, max_value=30.0, value=21.6, step=0.1)
         t_saturation = st.slider("T_Saturation (%)", min_value=0.0, max_value=100.0, value=13.7, step=0.1)
 
-    # Predict immediately on any slider change
+    # --- Predict and update buffer ---
     input_array = np.array([[t_supply, t_return, t_outdoor, t_saturation]])
     prediction = model.predict(input_array)[0]
-    st.success(f"⚡ Predicted Energy Consumption: **{prediction:.2f} kWh**")
+    st.session_state.energy_buffer.append(prediction)
 
-    # Dynamic plot for live changes
-    st.markdown("### 📈 Impact of Each Parameter (Live Response)")
+    st.metric(label="⚡ Predicted Energy", value=f"{prediction:.2f} kWh")
 
-    param_ranges = {
-        "T_Supply": np.linspace(10, 30, 50),
-        "T_Return": np.linspace(10, 30, 50),
-        "T_Outdoor": np.linspace(10, 60, 50),
-        "T_Saturation": np.linspace(0, 100, 50)
-    }
+    # --- Plot live chart using Altair ---
+    energy_df = pd.DataFrame({
+        "Index": list(range(len(st.session_state.energy_buffer))),
+        "Energy": list(st.session_state.energy_buffer)
+    })
 
-    fig, ax = plt.subplots()
+    line_chart = (
+        alt.Chart(energy_df)
+        .mark_line(interpolate="monotone", color="orange", strokeWidth=3)
+        .encode(
+            x=alt.X("Index", title="Time (simulated updates)"),
+            y=alt.Y("Energy", title="Predicted Energy (kWh)")
+        )
+        .properties(
+            width=600,
+            height=300,
+            title="🔁 Live Predicted Energy Trend"
+        )
+    )
 
-    for param_name, values in param_ranges.items():
-        base = {
-            "T_Supply": t_supply,
-            "T_Return": t_return,
-            "T_Outdoor": t_outdoor,
-            "T_Saturation": t_saturation
-        }
-
-        inputs = []
-        for v in values:
-            temp = base.copy()
-            temp[param_name] = v
-            inputs.append([
-                temp["T_Supply"],
-                temp["T_Return"],
-                temp["T_Outdoor"],
-                temp["T_Saturation"]
-            ])
-
-        inputs = np.array(inputs)
-        preds = model.predict(inputs)
-        ax.plot(values, preds, label=param_name)
-
-    ax.set_xlabel("Parameter Value")
-    ax.set_ylabel("Predicted Energy (kWh)")
-    ax.set_title("Live Sensitivity to Parameters")
-    ax.legend()
-    st.pyplot(fig)
+    st.altair_chart(line_chart, use_container_width=True)
 
 
 
