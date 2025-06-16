@@ -123,7 +123,7 @@ with tab3:
     try:
         # Load daily average data
         daily_df = pd.read_csv(daily_url)
-        daily_df = daily_df.sort_values('DayOfWeek')  # Optional: ensure day order
+        daily_df = daily_df.sort_values('Day')  # Optional: ensure day order
         daily_df = daily_df.rename(columns={"DayOfWeek": "index"}).set_index("index")
 
         # Load hourly average data
