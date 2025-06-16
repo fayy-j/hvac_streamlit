@@ -46,7 +46,7 @@ if use_lottie:
     lottie_json = load_lottieurl(lottie_url)
 
     if lottie_json:
-        st_lottie(lottie_json, height=200, speed=1, key="cute-walker", quality="low", loop=True)
+        st_lottie(lottie_json, height=80, speed=1, key="cute-walker", quality="low", loop=True)
     else:
         st.markdown("<div style='text-align:center; font-size:30px;'>🚶‍♂️</div>", unsafe_allow_html=True)
 else:
