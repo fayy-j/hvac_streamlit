@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, make_scorer
 from collections import deque
 import altair as alt
 
@@ -64,9 +64,9 @@ def load_model_and_data():
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     r2 = r2_score(y_test, y_pred)
 
-    return model, df, mae, rmse, r2
+    return model, df, mae, rmse, r2, X_train, y_train
 
-model, df, mae, rmse, r2 = load_model_and_data()
+model, df, mae, rmse, r2, X_train, y_train = load_model_and_data()
 
 if "energy_buffer" not in st.session_state:
     st.session_state.energy_buffer = deque(maxlen=30)
@@ -107,6 +107,19 @@ with st.expander("🔧 What-If Simulation: Predict Energy", expanded=True):
     )
 
     st.altair_chart(line_chart, use_container_width=True)
+
+# --- Section: Cross-Validation ---
+st.subheader("📊 K-Fold Cross-Validation (5 Folds)")
+cv = KFold(n_splits=5, shuffle=True, random_state=42)
+
+mae_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring=make_scorer(mean_absolute_error))
+rmse_scores = np.sqrt(-cross_val_score(model, X_train, y_train, cv=cv, scoring='neg_mean_squared_error'))
+r2_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='r2')
+
+st.markdown("**Cross-Validation Results (Training Set):**")
+st.markdown(f"- Average MAE: **{mae_scores.mean():.4f}** kWh")
+st.markdown(f"- Average RMSE: **{rmse_scores.mean():.4f}** kWh")
+st.markdown(f"- Average R²: **{r2_scores.mean():.4f}**")
 
 # --- Notice: Model Performance ---
 st.info(f"""
