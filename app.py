@@ -1,77 +1,68 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
+import joblib
+import requests
+import altair as alt
+import os
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from collections import deque
-import altair as alt
 
 # --- Page Config ---
 st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 
 # --- Title ---
 st.markdown("""
-    <h1 style='text-align: center; color:#333;'>
-        HVAC Energy Consumption Dashboard
-    </h1>
-    <p style='text-align: center; font-size:18px;'>
-        Analyze, simulate, and monitor energy patterns.
-    </p>
+    <h1 style='text-align: center; color:#333;'>HVAC Energy Consumption Dashboard</h1>
+    <p style='text-align: center; font-size:18px;'>Analyze, simulate, and monitor energy patterns.</p>
 """, unsafe_allow_html=True)
 
-# --- Optional Lottie Animation ---
+# --- Lottie Animation ---
 try:
     from streamlit_lottie import st_lottie
-    import requests
+
     def load_lottieurl(url):
         r = requests.get(url)
-        if r.status_code != 200:
-            return None
-        return r.json()
+        return r.json() if r.status_code == 200 else None
 
     lottie_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/Animation%20-%201750105697134.json"
     lottie_json = load_lottieurl(lottie_url)
-
     if lottie_json:
         st_lottie(lottie_json, height=80, speed=1, key="animation", quality="low", loop=True)
 except:
     st.markdown("<div style='text-align:center; font-size:30px;'>🚶‍♀️</div>", unsafe_allow_html=True)
 
-# --- Load Model and Data ---
+# --- Load model and data from Google Drive ---
 @st.cache_data
+def download_from_drive():
+    model_url = "https://drive.google.com/uc?id=1-Sf0WimFvzJjxCeyejJ5g_4seTrR-_Su"
+    x_test_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/main/X_test.csv"
+    y_test_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/main/y_test.csv"
 
-def load_model_and_data():
-    data_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/rawhvac.csv"
-    df = pd.read_csv(data_url, delimiter=';')
-    df = df.drop(columns=["Timestamp"], errors="ignore")
+    model_filename = "rf_hvac_model_8020_compressed.joblib"
+    if not os.path.exists(model_filename):
+        r = requests.get(model_url)
+        with open(model_filename, "wb") as f:
+            f.write(r.content)
 
-    target = 'Energy'
-    selected_features = ['T_Return', 'T_Saturation', 'T_Supply', 'T_Outdoor', 'RH_Return', 'RH_Supply']
-    X = df[selected_features]
-    y = df[target]
+    model = joblib.load(model_filename)
+    X_test = pd.read_csv(x_test_url)
+    y_test = pd.read_csv(y_test_url).squeeze()
 
-    # Split 80:20
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+    return model, X_test, y_test
 
-    # Train with 70:30 parameter config
-    model = RandomForestRegressor(n_estimators=400, min_samples_split=2, max_depth=None, random_state=42)
-    model.fit(X_train, y_train)
+model, X_test, y_test = download_from_drive()
 
-    y_pred = model.predict(X_test)
-
-    mae = mean_absolute_error(y_test, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    r2 = r2_score(y_test, y_pred)
-
-    return model, df, mae, rmse, r2
-
-model, df, mae, rmse, r2 = load_model_and_data()
+# --- Evaluation ---
+y_pred = model.predict(X_test)
+mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
 
 if "energy_buffer" not in st.session_state:
     st.session_state.energy_buffer = deque(maxlen=30)
 
-# --- Section: Predict Energy ---
+# --- What-If Simulation ---
 with st.expander("🔧 What-If Simulation: Predict Energy", expanded=True):
     st.markdown("Adjust parameters to observe predicted energy in real-time.")
 
@@ -96,29 +87,28 @@ with st.expander("🔧 What-If Simulation: Predict Energy", expanded=True):
         "Energy": list(st.session_state.energy_buffer)
     })
 
-    line_chart = (
+    chart = (
         alt.Chart(energy_df)
         .mark_line(interpolate="monotone", color="orange", strokeWidth=3)
         .encode(
             x=alt.X("Index", title="Time (simulated updates)"),
             y=alt.Y("Energy", title="Predicted Energy (kWh)")
         )
-        .properties(width=600, height=300, title="Predicted Energy Trend")
+        .properties(width=600, height=300)
     )
+    st.altair_chart(chart, use_container_width=True)
 
-    st.altair_chart(line_chart, use_container_width=True)
-
-# --- Notice: Model Performance ---
+# --- Accuracy Notice ---
 st.info(f"""
 ⚠️ **Notice on Prediction Accuracy**
 
 The prediction model explains approximately **{r2:.2%}** of the variation in energy consumption (R² score).
 
 Expected prediction error:
-- **MAE** ≈ {mae:.2f} kWh (average absolute error)
-- **RMSE** ≈ {rmse:.2f} kWh (root mean squared error)
+- **MAE** ≈ {mae:.2f} kWh
+- **RMSE** ≈ {rmse:.2f} kWh
 
-Use predictions with awareness of this potential margin of error.
+Use predictions with awareness of this margin of error.
 """)
 
 # --- Footer ---
