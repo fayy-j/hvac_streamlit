@@ -13,12 +13,30 @@ st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 # --- Title ---
 st.markdown("""
     <h1 style='text-align: center; color:#333;'>
-        HVAC Energy Consumption Estimator
+        HVAC Energy Consumption Dashboard
     </h1>
     <p style='text-align: center; font-size:18px;'>
         Analyze, simulate, and monitor energy patterns.
     </p>
 """, unsafe_allow_html=True)
+
+# --- Optional Lottie Animation ---
+try:
+    from streamlit_lottie import st_lottie
+    import requests
+    def load_lottieurl(url):
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+
+    lottie_url = "https://raw.githubusercontent.com/fayy-j/hvac_streamlit/refs/heads/main/Animation%20-%201750105697134.json"
+    lottie_json = load_lottieurl(lottie_url)
+
+    if lottie_json:
+        st_lottie(lottie_json, height=80, speed=1, key="animation", quality="low", loop=True)
+except:
+    st.markdown("<div style='text-align:center; font-size:30px;'>🚶‍♀️</div>", unsafe_allow_html=True)
 
 # --- Load Model and Data ---
 @st.cache_data
@@ -92,18 +110,21 @@ with st.expander("🔧 What-If Simulation: Predict Energy", expanded=True):
 
 # --- Notice: Model Performance ---
 st.info(f"""
-**Model Accuracy Info**
-- R² Score: {r2:.4f}
-- MAE: {mae:.4f} kWh
-- RMSE: {rmse:.4f} kWh
+⚠️ **Notice on Prediction Accuracy**
 
-This gives an idea of prediction reliability. Lower MAE/RMSE and R² close to 1.0 indicate high accuracy.
+The prediction model explains approximately **{r2:.2%}** of the variation in energy consumption (R² score).
+
+Expected prediction error:
+- **MAE** ≈ {mae:.2f} kWh (average absolute error)
+- **RMSE** ≈ {rmse:.2f} kWh (root mean squared error)
+
+Use predictions with awareness of this potential margin of error.
 """)
 
 # --- Footer ---
 st.markdown("""
     <hr>
     <div style='text-align: center; font-size: 13px; color: gray;'>
-        © 2025 fayy-j · HVAC Energy Dashboard
+        © 2025 fayy-j · HVAC Energy Consumption Estimator
     </div>
 """, unsafe_allow_html=True)
