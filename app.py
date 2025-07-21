@@ -87,17 +87,6 @@ with st.expander("🔧 What-If Simulation: Predict Energy", expanded=True):
         "Energy": list(st.session_state.energy_buffer)
     })
 
-    chart = (
-        alt.Chart(energy_df)
-        .mark_line(interpolate="monotone", color="orange", strokeWidth=3)
-        .encode(
-            x=alt.X("Index", title="Time (simulated updates)"),
-            y=alt.Y("Energy", title="Predicted Energy (kWh)")
-        )
-        .properties(width=600, height=300)
-    )
-    st.altair_chart(chart, use_container_width=True)
-
 # --- Accuracy Notice ---
 st.info(f"""
 ⚠️ **Notice on Prediction Accuracy**
