@@ -14,7 +14,7 @@ st.set_page_config(page_title="HVAC Energy Dashboard", layout="wide")
 # --- Title ---
 st.markdown("""
     <h1 style='text-align: center; color:#333;'>HVAC Energy Consumption Dashboard</h1>
-    <p style='text-align: center; font-size:18px;'>Analyze, simulate, and monitor energy patterns.</p>
+    <p style='text-align: center; font-size:18px;'>Estimate energy consumption.</p>
 """, unsafe_allow_html=True)
 
 # --- Lottie Animation ---
